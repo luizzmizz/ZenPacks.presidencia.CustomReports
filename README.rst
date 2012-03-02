@@ -51,4 +51,4 @@ Screenshots
 
 .. _Zenoss: http://www.zenoss.com/
 
-.. |Device Inventory Report| image:: https://github.com/zenoss/ZenPacks.presidencia.CustomReports/raw/master/docs/DeviceInventoryReport.png
+.. |Device Inventory Report| image:: https://github.com/luizzmizz/ZenPacks.presidencia.CustomReports/raw/master/docs/DeviceInventoryReport.png
