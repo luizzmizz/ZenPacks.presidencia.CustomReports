@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<objects>
+<!-- ('', 'zport', 'dmd', 'Reports', 'Sistemes', 'Checklist') -->
+<object id='/zport/dmd/Reports/Sistemes/Checklist' module='Products.ZenModel.Report' class='Report'>
+</object>
+<!-- ('', 'zport', 'dmd', 'Reports', 'Sistemes', 'Device Inventory') -->
+<object id='/zport/dmd/Reports/Sistemes/Device Inventory' module='Products.ZenModel.Report' class='Report'>
+</object>
+</objects>
