@@ -46,7 +46,7 @@ class AvailabilityColl:
     security.setDefaultAccess('allow')
 
     "Simple record for holding availability information"
-    def __init__(self, device, component, downtime, total, pstatus, groups='', Csystems='', location='', DeviceClass='',):
+    def __init__(self, device, component, downtime, total, pstatus, groups='', Csystems='', location='', DeviceClass='', manageIp='', productionState='', tag=''):
         self.device = device
         self.component = component
         self.groups = groups
@@ -54,13 +54,16 @@ class AvailabilityColl:
         self.location = location
         self.DeviceClass = DeviceClass
         self.status=pstatus
-
+        self.manageIp = manageIp
+        self.productionState = productionState
+        self.tag = tag
         # Guard against endDate being equal to or less than startDate.
         if total <= 0:
             self.availability = downtime and 0 or 1
         else:
             self.availability = max(0, 1 - (downtime / total))
-            
+        self.health = self.availability * 100
+        
     def checklistPrintable(self):
         value=True
         if self.component<>'':
@@ -118,18 +121,18 @@ InitializeClass(AvailabilityColl)
 
 class CReport:
     "Determine availability by counting the amount of time down"
-
+#r = CReport(sDate, eDate, cEventClass, cMinSeverity, cMaxSeverity, cGroup, cSystem, cLocation, cProductionSate, cDeviceClass)
     def __init__(self,
-                 startDate = None,
-                 endDate = None,
-                 eventClass=Status_Ping,
-                 severity=5,
-                 device=None,
-                 component='',
-                 groups=None,
-                 Csystems=None,
-                 location=None,
-                 DeviceClass=None):
+                 sDate,
+                 eDate,
+                 cEventClass,
+                 cMinSeverity,
+                 cMaxSeverity,
+                 cGroup,
+                 cSystem,
+                 cLocation,
+                 cProductionState,
+                 cDeviceClass):
 # Default dd/mm/yyy date resolves to 00:00 local time
 # This means startDate is beginning of startDate day but endDate is also the start of endDate day
 # If endDate is within 1 day (86400 seconds) of "now" then use "now" as endDate
@@ -141,26 +144,28 @@ class CReport:
 # this means that availability that includes today will not be 0 until the end of today
 # Hence you should not closely compare availability from this ZenPack with the standard 
 # Availability figures.
-        self.startDate = _round(startDate)
-        self.endDate = _round(endDate)
+        self.startDate = _round(sDate)
+        self.endDate = _round(eDate)
         if ((time.time() - self.endDate) < 86400 ):
             self.endDate = time.time() -300
-        self.eventClass = eventClass
-        self.severity = severity
-        self.device = device
-        self.component = component
-        self.groups = groups
-        self.Csystems = Csystems
-        self.location = location
-        self.DeviceClass = DeviceClass
-
-
+        self.eventClass = cEventClass
+        self.severity=cMaxSeverity
+        self.minSeverity = cMinSeverity
+        self.maxSeverity = cMaxSeverity
+        self.groups = cGroup
+        self.Csystems = cSystem
+        self.location = cLocation
+        self.DeviceClass = cDeviceClass
+        self.cProductionState = cProductionState
+        self.device=''
+        self.component=''
+        
     def tuple(self):
         return (
             self.startDate, self.endDate, self.eventClass, self.severity,
             self.device, self.component,
             self.groups, self.Csystems,
-            self.location, self.DeviceClass)
+            self.location, self.DeviceClass, self.cProductionState)
 
     def __hash__(self):
         return hash(self.tuple())
@@ -178,7 +183,7 @@ class CReport:
         __pychecker__='no-local'
         zem = dmd.ZenEventManager
         cols = 'device, component, firstTime, lastTime, severity'
-        prodState = 1000
+        ##prodState = 1000
         endDate = self.endDate or time.time()
         startDate = self.startDate
         if not startDate:
@@ -186,17 +191,18 @@ class CReport:
             startDate = time.time() - days*60*60*24
         env = self.__dict__.copy()
         env.update(locals())
-        w =  ' WHERE severity >= %(severity)s '
+        w =  ' WHERE severity between %(minSeverity)s AND %(maxSeverity)s '
         w += ' AND lastTime > %(startDate)s '
         w += ' AND firstTime <= %(endDate)s '
         w += ' AND firstTime != lastTime '
         w += " AND (eventClass = '%s' OR eventClass LIKE '%s/%%%%') " % (self.eventClass,
                                                                          self.eventClass.rstrip('/'))
-        w += " AND prodState >= %(prodState)s "
-        if self.device:
-            w += " AND device = '%(device)s' "
-        if self.component:
-            w += " AND component like '%%%(component)s%%' "
+        w += " AND DeviceClass not like  '/Ignore%%' "
+        #w += " AND prodState >= %(prodState)s "
+        #if self.device:
+            #w += " AND device = '%(device)s' "
+        #if self.component:
+            #w += " AND component like '%%%(component)s%%' "
 #  not None tests don't work as you can only select / not the null string
         if self.location != '/':
             w += " AND (Location = '%s' " % self.location
@@ -267,7 +273,7 @@ class CReport:
 #            if not self.DeviceClass and self.location == '/' \
             if self.DeviceClass == '/' and self.location == '/' \
                 and self.Csystems == '/' and self.groups == '/':
-                deviceList = dmd.Devices.getSubDevices()
+                deviceList = (set(dmd.Devices.getSubDevices())-set(dmd.Devices.Ignore.getSubDevices()))
             else:
                 allDevices = {}
                 for d in dmd.Devices.getSubDevices():
@@ -283,7 +289,15 @@ class CReport:
                         pass
                 else:
                     deviceClassDevices = set(allDevices.keys())
-
+                
+                ignoredDevices = set()
+                try:
+                  org = dmd.Devices.Ignore.getOrganizer('/Ignore')
+                  for d in org.getSubDevices():
+                    ignoredDevices.add(d.id)
+                except KeyError:
+                  pass
+                    
                 locationDevices = set()
                 if self.location != '/':
                     try:
@@ -318,7 +332,8 @@ class CReport:
                     deviceGroupDevices = set(allDevices.keys())
 
                 # Intersect all of the organizers.
-                for deviceId in (deviceClassDevices & locationDevices & \
+                
+                for deviceId in ((deviceClassDevices-ignoredDevices) & locationDevices & \
                     systemDevices & deviceGroupDevices):
                     deviceList.append(allDevices[deviceId])
 
@@ -338,13 +353,13 @@ class CReport:
             sys = dev.getSystemNamesString()
             loc = dev.getLocationName()
             devclass = dev.getDeviceClassPath()
-# Only include this device if it is in production state
-            if dev.productionState == 1000:
+# Only include this device if it fits the production State filter 
+            if  self.cProductionState=='All' or dev.productionState == int(self.cProductionState):
                 if tipus.has_key((d,c)):
                   status=tipus[(d,c)]
                 else:
                   status=0
-                result.append( AvailabilityColl(d, c, v, total, status, grp, sys, loc  ))
+                result.append( AvailabilityColl(d, c, v, total, status, grp, sys, loc,devclass,dev.manageIp,dev.productionState,dev.getHWTag()))
         # add in the devices that have the component, but no events
         if self.component:
             if tipus.has_key((d,c)):
@@ -352,12 +367,14 @@ class CReport:
             else:
               status=0
             for d in deviceList:
-# Only include this device if it is in production state
-                if d.productionState == 1000:
+# Only include this device if it fits the production State filter 
+                log.error('dev.productionState=%s,cProdState=%s'%(dev.productionState,self.cProductionState))
+                if self.cProductionState=='All' or d.productionState == int(self.cProductionState):
                     for c in d.getMonitoredComponents():
                         if c.name().find(self.component) >= 0:
                             a = AvailabilityColl(d.id, c.name(), 0, total, status,
-                                ', '.join(d.getDeviceGroupNames()), d.getSystemNamesString(), d.getLocationName(), d.getDeviceClassPath())
+                                ', '.join(d.getDeviceGroupNames()), d.getSystemNamesString(), d.getLocationName(), d.getDeviceClassPath(),
+                                d.manageIp,d.productionState,d.getHWTag())
                             result.append(a)
 #        availColLog.close()
         return result
@@ -373,23 +390,24 @@ def query(dmd, *args, **kwargs):
         _cache[r.tuple()] = result
         return result
 
-class AvailabilityCollection:
+class ChecklistCollection:
     def run(self, dmd, REQUEST):
         zem = dmd.ZenEventManager
-
         # Get values
-        component    = REQUEST.get('component', '')
-        eventClass   = REQUEST.get('eventClass', '/Status/Ping')
-        severity     = REQUEST.get('severity', '4')
-        device       = REQUEST.get('device', '')
-        groups       = REQUEST.get('groups', '/')
-        Csystems      = REQUEST.get('Csystems', '/')
-        location     = REQUEST.get('location', '/')
-        DeviceClass  = REQUEST.get('DeviceClass', '/')
-        startDate    = Time.ParseUSDate(REQUEST.get('startDate', zem.defaultAvailabilityStart()))
-        endDate      = Time.ParseUSDate(REQUEST.get('endDate', zem.defaultAvailabilityEnd()))
+        #component    = REQUEST.get('component', '')
+        cEventClass   = REQUEST.get('cEventClass')
+        cMinSeverity  = REQUEST.get('cMinSeverity')
+        cMaxSeverity  = REQUEST.get('cMaxSeverity')
+        cDeviceClass  = REQUEST.get('cDeviceClass')
+        cGroup        = REQUEST.get('cGroup')
+        cSystem      = REQUEST.get('cSystem')
+        cLocation      = REQUEST.get('cLocation')
+        cProductionState = REQUEST.get('cProductionState')
+        sDate    = Time.ParseUSDate(REQUEST.get('sDate'));
+        eDate      = Time.ParseUSDate(REQUEST.get('eDate'));
 
-        r = CReport(startDate, endDate, eventClass, severity, device, component, groups, Csystems, location, DeviceClass)
+        r = CReport(sDate, eDate, cEventClass, cMinSeverity, cMaxSeverity, cGroup, cSystem, cLocation, cProductionState, cDeviceClass)
+
         result = r.run(dmd)
 
         return result
