@@ -46,7 +46,7 @@ class AvailabilityColl:
     security.setDefaultAccess('allow')
 
     "Simple record for holding availability information"
-    def __init__(self, device, component, downtime, total, pstatus, groups='', Csystems='', location='', DeviceClass='', manageIp='', productionState='', tag=''):
+    def __init__(self, dmd, device, component, downtime, total, pstatus, groups='', Csystems='', location='', DeviceClass='', manageIp='', productionState='', tag=''):
         self.device = device
         self.component = component
         self.groups = groups
@@ -55,8 +55,9 @@ class AvailabilityColl:
         self.DeviceClass = DeviceClass
         self.status=pstatus
         self.manageIp = manageIp
-        self.productionState = productionState
+        self.productionState = self.getDevice(dmd).getProdState()
         self.tag = tag
+        
         # Guard against endDate being equal to or less than startDate.
         if total <= 0:
             self.availability = downtime and 0 or 1
@@ -75,6 +76,12 @@ class AvailabilityColl:
         strstatus='<font color=%s>%s</font>'%(dctStatus[self.status])
         return strstatus
 
+        
+    def statusString(self):
+        dctStatus={0:('green','CLEAR'), 1:('grey','DEBUG'), 2:('blue','INFO'), 3:('"#ACAC31"','WARNING'), 4:('orange','ERROR'), 5:('red','CRITICAL')}
+        strstatus=dctStatus[self.status][1]
+        return strstatus
+      
     def floatStr(self):
         val='%2.3f%%' % (self.availability * 100)
         dctStatus={0:('black','CLEAR'), 1:('grey','DEBUG'), 2:('blue','INFO'), 3:('"#ACAC31"','WARNING'), 4:('orange','ERROR'), 5:('red','CRITICAL')}
@@ -359,7 +366,7 @@ class CReport:
                   status=tipus[(d,c)]
                 else:
                   status=0
-                result.append( AvailabilityColl(d, c, v, total, status, grp, sys, loc,devclass,dev.manageIp,dev.productionState,dev.getHWTag()))
+                result.append( AvailabilityColl(dmd,d, c, v, total, status, grp, sys, loc,devclass,dev.manageIp,dev.productionState,dev.getHWTag()))
         # add in the devices that have the component, but no events
         if self.component:
             if tipus.has_key((d,c)):
@@ -372,7 +379,7 @@ class CReport:
                 if self.cProductionState=='All' or d.productionState == int(self.cProductionState):
                     for c in d.getMonitoredComponents():
                         if c.name().find(self.component) >= 0:
-                            a = AvailabilityColl(d.id, c.name(), 0, total, status,
+                            a = AvailabilityColl(dmd,d.id, c.name(), 0, total, status,
                                 ', '.join(d.getDeviceGroupNames()), d.getSystemNamesString(), d.getLocationName(), d.getDeviceClassPath(),
                                 d.manageIp,d.productionState,d.getHWTag())
                             result.append(a)

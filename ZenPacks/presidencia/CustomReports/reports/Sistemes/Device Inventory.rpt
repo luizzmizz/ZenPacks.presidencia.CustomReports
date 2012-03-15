@@ -14,6 +14,7 @@
     tHWProductSearch python:sts(tableName, 'tHWProductSearch', here.REQUEST.get('tHWProductSearch','0'));
     tOSProductSearch python:sts(tableName, 'tOSProductSearch', here.REQUEST.get('tOSProductSearch','0'));
     productionState python:sts(tableName, 'productionState', here.REQUEST.get('productionState','Production'));
+    isMail python:sts(tableName, 'isMail', here.REQUEST.get('isMail','0'));    
 
     sDevice python:sts(tableName, 'sDevice', here.REQUEST.get('sDevice','1'));
     sProductionState python:sts(tableName, 'sProductionState', here.REQUEST.get('sProductionState','0'));
@@ -31,7 +32,7 @@
       hwproducts python:pluginOutput['hwproducts'];
       osproducts python:pluginOutput['osproducts'];
     batch python:tm.getBatch(tableName,objects);
-    exportFields python:['device', 'manageIp', 'tag', 'DeviceClass', 'location', 'productionState', 'getHWManufacturerName', 'getHWProductName', 'getOSManufacturerName', 'getOSProductName'];
+    exportFields python:['device', 'deviceClassPath', 'manageIp', 'tag', 'location', 'productionState', 'getHWManufacturerName', 'getHWProductName', 'getOSManufacturerName', 'getOSProductName'];
     ">
 <html>
   <head>
@@ -50,28 +51,6 @@
   </head>
   <body class="z-bc"> 
 
-<!--<table>
-<tr><th>Variable</th><th>Value</th></tr>
-<tr><td>DeviceClass: </td><td tal:condition="DeviceClass" tal:content="DeviceClass"/></tr>
-<tr><td>Group: </td><td tal:condition="groups" tal:content="groups"/></tr>
-<tr><td>System: </td><td tal:condition="Csystems" tal:content="Csystems"/></tr>
-<tr><td>Location: </td><td tal:condition="location" tal:content="location"/></tr>
-<tr><td>sDevice: </td><td tal:condition="sDevice" tal:content="sDevice"/></tr>
-<tr><td>sIp: </td><td tal:condition="sIP" tal:content="sIP"/></tr>
-<tr><td>sDeviceClass: </td><td tal:condition="sDeviceClass" tal:content="sDeviceClass"/></tr>
-<tr><td>sProductionState: </td><td tal:condition="sProductionState" tal:content="sProductionState"/></tr>
-<tr><td>sLocation: </td><td tal:condition="sLocation" tal:content="sLocation"/></tr>
-<tr><td>sTag: </td><td tal:condition="sTag" tal:content="sTag"/></tr>
-<tr><td>sHW: </td><td tal:condition="sHW" tal:content="sHW"/></tr>
-<tr><td>sOS: </td><td tal:condition="sOS" tal:content="sOS"/></tr>
-<tr><td>OSmanuf: </td><td tal:condition="OSManufacturer" tal:content="OSManufacturer"/></tr>
-<tr><td>OSProduct: </td><td tal:condition="OSProduct" tal:content="OSProduct"/></tr>
-<tr><td>tOSProductSearch: </td><td tal:condition="tOSProductSearch" tal:content="tOSProductSearch"/></tr>
-<tr><td>HWmanuf: </td><td tal:condition="HWManufacturer" tal:content="HWManufacturer"/></tr>
-<tr><td>HWProduct: </td><td tal:condition="HWProduct" tal:content="HWProduct"/></tr>
-<tr><td>tHWProductSearch: </td><td tal:condition="tHWProductSearch" tal:content="tHWProductSearch"/></tr>
-</table>
--->
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
 <tal:block metal:use-macro="here/templates/macros/page1">
@@ -251,6 +230,9 @@
 
  <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
  <tal:block metal:fill-slot="zentablecontents">
+        <tal:block tal:condition="python:isMail=='0'">
+         <tr><td colspan="100%" class="tableheader" align='center'><form metal:use-macro="here/zenTableNavigation/macros/navtool"></form></td></tr>
+        </tal:block>
   <tr>
     <th tal:condition="python:sDevice=='1'" tal:replace="structure python:tm.getTableHeader(
                           tableName,'device','Device')"/>
@@ -270,13 +252,13 @@
                           tableName,'getOS','OS')"/>
   </tr>
   <tal:block tal:repeat="dev batch">
-        <tr>
+        <tr tal:define="odd repeat/dev/odd" tal:attributes="class python:odd and 'odd' or 'even'">
            <td class="tablevalues" tal:condition="python:sDevice=='1'" tal:content="structure dev/deviceLink"/>
            <td class="tablevalues" tal:condition="python:sIP=='1'" tal:content="structure dev/manageIp"/>
            <td class="tablevalues" tal:condition="python:sTag=='1'" tal:content="structure dev/tag"/>
-           <td class="tablevalues" tal:condition="python:sDeviceClass=='1'" tal:content="structure dev/deviceClassPath"/>
+           <td class="tablevalues" tal:condition="python:sDeviceClass=='1'" tal:content="structure dev/deviceClassPathLink"/>
            <td class="tablevalues" tal:condition="python:sProductionState=='1'" tal:content="structure dev/productionState"/>
-           <td class="tablevalues" tal:condition="python:sLocation=='1'" tal:content="structure dev/location"/>
+           <td class="tablevalues" tal:condition="python:sLocation=='1'" tal:content="structure dev/locationLink"/>
            <td class="tablevalues" tal:condition="python:sHW=='1'" tal:content="structure dev/getHW"/>
            <td class="tablevalues" tal:condition="python:sOS=='1'" tal:content="structure dev/getOS"/>
         </tr>

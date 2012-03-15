@@ -15,7 +15,7 @@
                           ['Status','Current Status','status',sts(tableName, 'sStatus', here.REQUEST.get('sStatus','1')),7],
                           ['Location','Location','location',sts(tableName, 'sLocation', here.REQUEST.get('sLocation','1')),8],
                          ];
-
+    title python:sts(tableName, 'title', here.REQUEST.get('title',''));
     cDeviceClass python:sts(tableName, 'cDeviceClass', here.REQUEST.get('cDeviceClass','/'));
     cGroup python:sts(tableName, 'cGroup', here.REQUEST.get('cGroup','/'));
     cSystem python:sts(tableName, 'cSystem', here.REQUEST.get('cSystem','/'));
@@ -37,7 +37,7 @@
                                             'cDeviceClass':cDeviceClass,'cGroup':cGroup,'cSystem':cSystem,
                                             'cLocation':cLocation,'cProductionState':cProductionState,'sDate':sDate,'eDate':eDate});
     batch python:tm.getBatch(tableName,objects);
-    exportFields python:['device', 'tag', 'availability','getstatus','status'];
+    exportFields python:['device', 'DeviceClass', 'manageIp', 'productionState', 'component', 'tag', 'availability', 'statusString', 'location'];
     isMail python:here.REQUEST.get('isMail','0');
     ">
 
@@ -103,7 +103,7 @@
             <td class="tableheader"/><td class="tablevalues"/>
           </tr>
         </table>
-      </td><td rowspan="2" style="vertical-align:text-top;">
+      </td><td rowspan="2" style="vertical-align:text-top;" class="tableheader">
         <table class="zentable"> <!--Show/Hide Columns table-->
           <tr><th class="tableheader" colspan="2">&nbsp;Show/hide Columns</th></tr>
           <tal:block tal:repeat="column reportColumns">
@@ -157,7 +157,9 @@
                       showfilterbox python:True;">
      <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
       <tal:block metal:fill-slot="zentablecontents">
-       <table>
+        <tal:block tal:condition="python:isMail=='0'">
+         <tr><td colspan="100%" class="tableheader" align='center'><form metal:use-macro="here/zenTableNavigation/macros/navtool"></form></td></tr>
+        </tal:block>
         <tal:block tal:condition="python:isMail=='0'">
          <tr>
           <tal:block tal:repeat="column reportColumns">
@@ -186,7 +188,7 @@
                                 avail.checklistPrintable(),
                                 ];
                                 ">
-         <tr>
+         <tr tal:define="odd repeat/avail/odd" tal:attributes="class python:odd and 'odd' or 'even'">
           <tal:block tal:condition="python:isMail=='0'">
             <tal:block tal:repeat="column reportColumns">
             <td class="tablevalues" tal:condition="python:column[3]=='1'" tal:content="structure python:availresults[column[4]]" />
@@ -203,7 +205,6 @@
         <tal:block tal:condition="python:isMail=='0'">
          <tr><td colspan="100%" class="tableheader" align='center'><form metal:use-macro="here/zenTableNavigation/macros/navtool"></form></td></tr>
         </tal:block>
-      </table>
       </tal:block> <!--zentablecontents-->
      </tal:block> <!--use-macro="here/zenuimacros/macros/zentable"-->
     </form>

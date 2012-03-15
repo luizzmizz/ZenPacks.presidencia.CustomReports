@@ -51,8 +51,8 @@ class DeviceInventoryCollection:
                       deviceLink = dev.getDeviceLink(),
                       manageIp = dev.manageIp,
                       tag = dev.getHWTag,
-                      deviceClassPath = '%s'%dev.getDeviceClassPath().replace(deviceClass,'',1),
-                      deviceClassPathLink = dmd.Devices.getOrganizer(dev.getDeviceClassPath()).getIdLink(),
+                      deviceClassPath = dev.getDeviceClassPath(),
+                      deviceClassPathLink = dev.deviceClass().getIdLink(),
 		      productionState = dev.getProdState(),
                       getHW = '%s: %s'%(dev.getHWManufacturerName(),dev.getHWProductName()) ,
                       getHWProductName=dev.getHWProductName(),
@@ -60,7 +60,8 @@ class DeviceInventoryCollection:
                       getOS = '%s: %s'%(dev.getOSManufacturerName(),dev.getOSProductName()) ,
                       getOSProductName=dev.getOSProductName(),
                       getOSManufacturerName=dev.getOSManufacturerName(),
-		      location = dev.getLocationName().replace(location,'',1),
+		      location = dev.getLocationName(),
+		      locationLink = dev.getLocationLink(),
                       )
                     )
 	superreport={}
