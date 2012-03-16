@@ -185,9 +185,10 @@
                                 avail.floatStr(),
                                 avail.getStatus(),
                                 avail.getDevice(here.dmd).getLocationName(),
-                                avail.checklistPrintable(),
                                 ];
-                                ">
+                                printable python:avail.checklistPrintable();
+                                "
+                                tal:condition="printable">
          <tr tal:define="odd repeat/avail/odd" tal:attributes="class python:odd and 'odd' or 'even'">
           <tal:block tal:condition="python:isMail=='0'">
             <tal:block tal:repeat="column reportColumns">
