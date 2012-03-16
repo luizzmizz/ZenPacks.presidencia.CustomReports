@@ -21,7 +21,6 @@
     sIP python:sts(tableName, 'sIP', here.REQUEST.get('sIP','1'));
     sLocation python:sts(tableName, 'sLocation', here.REQUEST.get('sLocation','1'));
     sTag python:sts(tableName, 'sTag', here.REQUEST.get('sTag','1'));
-    sSerial python:sts(tableName, 'sSerial', here.REQUEST.get('sSerial','1'));
     sHW python:sts(tableName, 'sHW', here.REQUEST.get('sHW','1'));
     sDeviceClass python:sts(tableName, 'sDeviceClass', here.REQUEST.get('sDeviceClass','1'));
     sOS python:sts(tableName, 'sOS', here.REQUEST.get('sOS','1'));
@@ -33,7 +32,7 @@
       hwproducts python:pluginOutput['hwproducts'];
       osproducts python:pluginOutput['osproducts'];
     batch python:tm.getBatch(tableName,objects);
-    exportFields python:['device', 'deviceClassPath', 'manageIp', 'tag', 'serial', 'location', 'productionState', 'getHWManufacturerName', 'getHWProductName', 'getOSManufacturerName', 'getOSProductName'];
+    exportFields python:['device', 'deviceClassPath', 'manageIp', 'tag', 'location', 'productionState', 'getHWManufacturerName', 'getHWProductName', 'getOSManufacturerName', 'getOSProductName'];
     ">
 <html>
   <head>
@@ -105,7 +104,6 @@
         <tr><td><input type="checkbox" tal:attributes="checked python:sDevice=='1'" onchange="javascript:toggleAndSubmit(this.form,'sDevice');">Device Name</td></tr>
         <tr><td><input type="checkbox" tal:attributes="checked python:sIP=='1'" onchange="javascript:toggleAndSubmit(this.form,'sIP');">IP Address</td></tr>
         <tr><td><input type="checkbox" tal:attributes="checked python:sTag=='1'" onchange="javascript:toggleAndSubmit(this.form,'sTag');">Tag</td></tr>
-        <tr><td><input type="checkbox" tal:attributes="checked python:sSerial=='1'" onchange="javascript:toggleAndSubmit(this.form,'sSerial');">Serial Number</td></tr>        
         <tr><td><input type="checkbox" tal:attributes="checked python:sDeviceClass=='1'" onchange="toggleAndSubmit(this.form,'sDeviceClass');">DeviceClass</td></tr>
         <tr><td><input type="checkbox" tal:attributes="checked python:sProductionState=='1'" onchange="javascript:toggleAndSubmit(this.form,'sProductionState');">Production State</td></tr>
         <tr><td><input type="checkbox" tal:attributes="checked python:sLocation=='1'" onchange="javascript:toggleAndSubmit(this.form,'sLocation');">Location</td></tr>
@@ -116,7 +114,6 @@
         <input type="hidden" name="sIP" tal:attributes="value sIP">
         <input type="hidden" name="sLocation" tal:attributes="value sLocation">
         <input type="hidden" name="sTag" tal:attributes="value sTag">
-        <input type="hidden" name="sSerial" tal:attributes="value sSerial">
         <input type="hidden" name="sHW" tal:attributes="value sHW">
         <input type="hidden" name="sDeviceClass" tal:attributes="value sDeviceClass">
         <input type="hidden" name="sOS" tal:attributes="value sOS">
@@ -220,7 +217,6 @@
  <input type="hidden" name="sIP" tal:attributes="value sIP">
  <input type="hidden" name="sLocation" tal:attributes="value sLocation">
  <input type="hidden" name="sTag" tal:attributes="value sTag">
- <input type="hidden" name="sSerial" tal:attributes="value sSerial">
  <input type="hidden" name="sHW" tal:attributes="value sHW">
  <input type="hidden" name="sDeviceClass" tal:attributes="value sDeviceClass">
  <input type="hidden" name="sOS" tal:attributes="value sOS">
@@ -244,8 +240,6 @@
                           tableName,'manageIp','IP Address')"/>
     <th tal:condition="python:sTag=='1'" tal:replace="structure python:tm.getTableHeader(
                           tableName,'tag','Tag')"/>
-    <th tal:condition="python:sSerial=='1'" tal:replace="structure python:tm.getTableHeader(
-                          tableName,'serial','SN')"/>
     <th tal:condition="python:sDeviceClass=='1'" tal:replace="structure python:tm.getTableHeader(
                           tableName,'deviceClassPath','Device Class')"/>
     <th tal:condition="python:sProductionState=='1'" tal:replace="structure python:tm.getTableHeader(
@@ -262,7 +256,6 @@
            <td class="tablevalues" tal:condition="python:sDevice=='1'" tal:content="structure dev/deviceLink"/>
            <td class="tablevalues" tal:condition="python:sIP=='1'" tal:content="structure dev/manageIp"/>
            <td class="tablevalues" tal:condition="python:sTag=='1'" tal:content="structure dev/tag"/>
-           <td class="tablevalues" tal:condition="python:sSerial=='1'" tal:content="structure dev/serial"/>
            <td class="tablevalues" tal:condition="python:sDeviceClass=='1'" tal:content="structure dev/deviceClassPathLink"/>
            <td class="tablevalues" tal:condition="python:sProductionState=='1'" tal:content="structure dev/productionState"/>
            <td class="tablevalues" tal:condition="python:sLocation=='1'" tal:content="structure dev/locationLink"/>

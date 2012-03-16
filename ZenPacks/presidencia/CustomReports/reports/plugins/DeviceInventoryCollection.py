@@ -51,6 +51,7 @@ class DeviceInventoryCollection:
                       deviceLink = dev.getDeviceLink(),
                       manageIp = dev.manageIp,
                       tag = dev.getHWTag,
+                      serial = dev.getHWSerialNumber(),
                       deviceClassPath = dev.getDeviceClassPath(),
                       deviceClassPathLink = dev.deviceClass().getIdLink(),
 		      productionState = dev.getProdState(),

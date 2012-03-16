@@ -37,13 +37,8 @@ Usage
 Installing the ZenPack will add the following objects to your Zenoss system.
 
 * Reports/Sistemes folder
-
-  * Device Inventory: New report, with organizer and production state
-filters, toggle columns visibility and filters by device HW/OS (but not from
-installed software)
-
-  * Checklist: New parametrizable report, based on Jane Curry's availability
-report. Still has a lot of job to be done...
+  * Device Inventory: New report, with organizer and production state filters, toggle columns visibility and filters by device HW/OS (but not from installed software)
+  * Checklist: New parametrizable report, based on Jane Curry's availability report. Still has a lot of job to be done...
 
 Screenshots
 -----------
